@@ -16,14 +16,12 @@ function tryPatchGapi() {
         if (script.src.match(/^https:[/][/]apis[.]google[.]com[/]js[/]/)) {
           patchedScriptOnload = true;
           if (script.onload) {
-            console.log('gapi-issue260: Installing onload patcher to', script);
             let scriptOnload = script.onload;
             script.onload = function(e) {
               tryPatchGapi();
               scriptOnload(e);
             };
           } else {
-            console.log('gapi-issue260: Installing "load" event patcher to', script);
             script.addEventListener('load', tryPatchGapi);
           }
         }
@@ -35,10 +33,8 @@ function tryPatchGapi() {
   if (!gapi.auth2) {
     if (!patchedGapiLoad) {
       patchedGapiLoad = true;
-      console.log('gapi-issue260: Patching gapi.load.');
       let gapiLoad = gapi.load;
       gapi.load = function(targets, callback) {
-        console.log('gapi-issue260: Watching gapi.load(', targets, ', ', callback, ').');
         if (callback instanceof Function) {
           gapiLoad(targets, () => {
             tryPatchGapi();
@@ -62,10 +58,8 @@ function tryPatchGapi() {
   if (patchedGapiAuth2Init)
     return;
   patchedGapiAuth2Init = true;
-  console.log('gapi-issue260: Patching gapi.auth2.init.');
   let gapiAuth2Init = gapi.auth2.init;
   gapi.auth2.init = function(params) {
-    console.log('gapi-issue260: Watching gapi.auth2.init(', params, ').');
     return new Promise((resolve, reject) => {
       gapiAuth2Init(params).then(
           resolve,
